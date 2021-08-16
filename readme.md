@@ -239,6 +239,48 @@ E seu arquivo package.json deve estar semelhante a esse:
 
 ```
 
+### Criando um midleware para logar nossa API
+
+Crie a seguinte funcion dentro de index.js
+
+```javascript
+/**
+ * 
+ * Midleware
+ * Intercepta uma requisição. Semelhante aos filtros do java. 
+ * Pode interromper uma requisição, bem como, modificá-la.
+ * Implementa o design patter Observer.
+ */
+
+const logRequest = (request, response, next) => {
+  const { method, url } = request;
+  const logText = `[${method.toUpperCase()} ${url}]`;
+  console.time(logText);
+  next();
+  console.timeEnd(logText);
+}
+
+app.use(logRequest);
+```
+
+Note que pedimos ao express para utilizar a funcion criada. Dessa forma, toda vez que fizermos alguma requisição, o Método e a URL solicitada serão impressos no console.
+
+### Criando um novo midleware para validar o formato do ID
+
+```javascript
+const validateFormatId = (request, response, next) => {
+  const { id } = request.params;
+  if(!isUuid(id)){
+    return response.status(400).send({code:400, data:"Esse id não é válido"});
+  }
+  return next();
+}
+
+app.use("/projects/:id",validateFormatId);
+```
+
+Dessa forma, o express vai interceptar as rotas no formato **/projects/<id>** e aplicar o midleware de validação
+
 **Dica importante**
 
 para fazer requisições dentro do visual code, instale a extensão **thunder client**.

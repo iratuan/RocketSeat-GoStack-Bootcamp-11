@@ -5,7 +5,7 @@ const PORT = 3000;
 /** Necessário para receber os dados da requisição no formato json */
 const bodyParser = require("body-parser");
 /** Necessário para gerar os IDs no formato Unique Universal ID */
-const { uuid } = require("uuidv4");
+const { uuid, isUuid } = require("uuidv4");
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -21,6 +21,35 @@ let projects = [];
  * PUT    usado para atualizar um registro
  * DELETE usado para deletar (soft ou hard)
  */
+
+/**
+ * 
+ * Midleware
+ * Intercepta uma requisição. Semelhante aos filtros do java. 
+ * Pode interromper uma requisição, bem como, modificá-la.
+ * Implementa o design patter Observer.
+ */
+
+const logRequest = (request, response, next) => {
+  const { method, url } = request;
+  const logText = `[${method.toUpperCase()} ${url}]`;
+  console.time(logText);
+  next();
+  console.timeEnd(logText);
+}
+
+app.use(logRequest);
+
+const validateFormatId = (request, response, next) => {
+  const { id } = request.params;
+  if(!isUuid(id)){
+    return response.status(400).send({code:400, data:"Esse id não é válido"});
+  }
+  return next();
+}
+
+app.use("/projects/:id",validateFormatId);
+
 
 /**
  * Recupera todos os projetos
